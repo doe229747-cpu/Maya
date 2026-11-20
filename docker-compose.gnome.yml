@@ -1,0 +1,26 @@
+name: maya-debian
+
+services:
+  debian-gnome:
+    build:
+      context: .
+      dockerfile: Dockerfile.gnome
+    image: maya-debian13-gnome:local
+    privileged: true
+    init: true
+    shm_size: 2gb
+    environment:
+      VNC_PASSWORD: ${VNC_PASSWORD:-maya321}
+      VNC_GEOMETRY: ${VNC_GEOMETRY:-1600x1000}
+      DISK_SIZE: 32G
+      TZ: Europe/Warsaw
+    ports:
+      - "127.0.0.1:6080:6080"
+    volumes:
+      - maya-system:/var/lib/maya-system
+      - /dev:/dev
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+volumes:
+  maya-system:

@@ -1,0 +1,52 @@
+FROM debian:trixie
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=pl_PL.UTF-8 \
+    LANGUAGE=pl_PL:pl \
+    LC_ALL=pl_PL.UTF-8 \
+    TZ=Europe/Warsaw \
+    VNC_DISPLAY=:1 \
+    VNC_GEOMETRY=1600x1000 \
+    VNC_DEPTH=24 \
+    DISK_SIZE=32G \
+    DISK_IMAGE=/var/lib/maya-system/debian-home.img \
+    VNC_PASSWORD=maya321
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        dbus-x11 \
+        e2fsprogs \
+        locales \
+        novnc \
+        procps \
+        sudo \
+        task-gnome-desktop \
+        tigervnc-standalone-server \
+        tigervnc-tools \
+        util-linux \
+        websockify \
+        x11-xserver-utils \
+    && echo "pl_PL.UTF-8 UTF-8" > /etc/locale.gen \
+    && locale-gen \
+    && update-locale LANG=pl_PL.UTF-8 \
+    && ln -snf /usr/share/zoneinfo/Europe/Warsaw /etc/localtime \
+    && echo "Europe/Warsaw" > /etc/timezone \
+    && useradd --create-home --shell /bin/bash maya \
+    && echo "maya ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/maya \
+    && chmod 0440 /etc/sudoers.d/maya \
+    && mkdir -p /var/lib/maya-system \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY scripts/gnome-entrypoint.sh /usr/local/bin/gnome-entrypoint
+RUN chmod 0755 /usr/local/bin/gnome-entrypoint
+
+EXPOSE 6080
+VOLUME ["/var/lib/maya-system"]
+
+HEALTHCHECK --interval=20s --timeout=5s --start-period=180s --retries=6 \
+    CMD curl --fail --silent http://127.0.0.1:6080/vnc.html > /dev/null || exit 1
+
+ENTRYPOINT ["/usr/local/bin/gnome-entrypoint"]

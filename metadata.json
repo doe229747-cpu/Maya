@@ -1,0 +1,5 @@
+{
+  "name": "Maya Creative",
+  "description": "Polski asystent kreatywny oparty na Gemini, z historią rozmów zapisywaną lokalnie.",
+  "requestFramePermissions": []
+}
